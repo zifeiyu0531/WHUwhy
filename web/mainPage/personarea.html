@@ -1,0 +1,574 @@
+<script src="../js/vue.js"></script>
+<script src="../js/jquery-3.3.1.min.js"></script>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>WHUwhy-个人中心</title>
+	</head>
+
+	<body>
+		<div id="personarea">
+			<div class="top-bar">
+				<img @click="toIndexPage" src="../img/主页面/主界面logo-描边.png" class="logo" />
+				<button @click="toIndexPage" class="top-title1" onmouseenter="enter(this)" onmouseleave="leave(this)">首页</button>
+				<button @click="toAllQuestion" class="top-title2" onmouseenter="enter(this)" onmouseleave="leave(this)">问题</button>
+				<button @click="toAllArticle" class="top-title3" onmouseenter="enter(this)" onmouseleave="leave(this)">文章</button>
+				<div class="search-box">
+					<img src="../img/首页/搜索框.png" class="bg" @click="search" />
+					<input type="text" class="search" v-model="searchText" placeholder="搜索问题" />
+				</div>
+			</div>
+			<img src="../img/主页面/个人信息栏/个人信息栏-展开按钮（改）.png" class="left-bar1" @click="personShow" v-show="!showPerson" />
+			<div class="person" v-show="showPerson">
+				<img class="bg" src="../img/主页面/个人信息栏/个人信息栏-背景框.png" />
+				<img class="bg-img" src="../img/主页面/个人信息栏/个人信息栏-默认背景图.png" />
+				<div class="head-box">
+					<img class="bg" src="../img/主页面/个人信息栏/个人信息栏-头像框.png" />
+				</div>
+				<p class="user-id">{{userName}}</p>
+				<p class="user-info">{{userInfo}}</p>
+				<div class="item1" @click="toPersonArea">
+					<img class="bg" src="../img/主页面/个人信息栏/个人信息栏-条框.png" />
+					<img class="user-logo" src="../img/主页面/个人信息栏/个人中心.png" />
+					<p class="user-text">个人中心</p>
+				</div>
+				<div class="item2">
+					<img class="bg" src="../img/主页面/个人信息栏/个人信息栏-条框.png" />
+					<img class="user-logo" src="../img/主页面/个人信息栏/我的收藏.png" />
+					<p class="user-text">我的收藏</p>
+				</div>
+				<div class="item3" @click="toLogOut">
+					<img class="bg" src="../img/主页面/个人信息栏/个人信息栏-条框.png" />
+					<img class="user-logo" src="../img/主页面/个人信息栏/注销.png" />
+					<p class="user-text">注销</p>
+				</div>
+				<img class="left-bar2" src="../img/主页面/个人信息栏/收起.png" @click="personBack" />
+			</div>
+			<div class="main-area">
+				<img :src="backgroundUrl" class="background-image" v-show="!changeAll"/>
+				<img :src="newBackgroundUrl" class="background-image" v-show="changeAll"/>
+				<div class="background-image" style="cursor:pointer; background-image: url(../img/个人中心/更换背景图悬空响应.png);" v-show="changeAll" >
+					<input class="bg" type="file" @change="backChange($event)" style="opacity: 0;"/>
+				</div>
+				<div class="head-image-area">
+					<img :src="headUrl" class="head-image" v-show="!changeAll"/>
+					<img :src="newHeadUrl" class="head-image" v-show="changeAll"/>
+					<div class="head-image" style="cursor:pointer; background-image: url(../img/个人中心/更换头像悬空响应.png);" v-show="changeAll">
+						<input class="bg" type="file" @change="headChange($event)" style="opacity: 0;"/>	
+					</div>
+				</div>
+				<p class="user-name">{{userName}}</p>
+				<p class="user-info2" v-show="!changeInfo">{{userInfo}}</p>
+				<input class="user-info2 input-box" type="text" v-show="changeInfo" v-model="newInfo"/>
+				<img src="../img/个人中心/确认签名.png" class="confirm-info" @click="changeUserInfo" v-show="changeInfo" />
+				<img src="../img/个人中心/取消签名.png" class="cancel-info" @click="cancelChangeUserInfo" v-show="changeInfo" />
+				<img src="../img/个人中心/编辑个人签名.png" class="confirm-info" @click="toChangeUserInfo" v-show="!changeInfo" />
+				<img src="../img/个人中心/我的资料栏.png" class="line"/>
+				<div class="items">
+					<p>昵称</p>
+					<p>学号</p>
+					<p>个人签名</p>
+				</div>
+				<div class="items-body">
+					<p v-show="!changeAll">{{userName}}</p>
+					<input v-show="changeAll" class="input-box" style="margin-top: 15px; width: 130px;" v-model="newName"/>
+					<p>{{userId}}</p>
+					<p v-show="!changeAll">{{userInfo}}</p>
+					<input v-show="changeAll" class="input-box" style="margin-bottom: 20px;" v-model="newInfo"/>
+				</div>
+				<img src="../img/个人中心/资料保存.png" class="confirm-user" @click="changeUser" v-show="changeAll" />
+				<img src="../img/个人中心/资料取消.png" class="cancel-user" @click="cancelChangeUser" v-show="changeAll" />	
+				<img src="../img/个人中心/资料修改.png" class="confirm-user" @click="toChangeUser" v-show="!changeAll" />
+			</div>
+			<div class="bottom-bar">
+				<img src="../img/主页面/主界面logo-描边.png" class="logo-bottom"/>
+				<p class="text-bottom">武汉大学计算机学院“零杯”网页设计大赛参赛作品</p>
+			</div>
+		</div>
+	</body>
+
+</html>
+<script>
+	function enter(x) {
+		x.style.backgroundImage = "url(../img/主页面/导航栏悬空响应.png)";
+	}
+
+	function leave(x) {
+		x.style.background = "none";
+	}
+	var app = new Vue({
+		el: '#personarea',
+		data: {
+			userName: 'user',
+			userInfo: '签名示例',
+			userId: '2017000000001',
+			headUrl: '../img/个人中心/示例头像.png',
+			backgroundUrl: '../img/个人中心/示例背景图.png',
+			newName: '',
+			newInfo: '',
+			newHeadUrl: '',
+			newBackgroundUrl: '',
+			changeAll: false,
+			changeInfo: false,
+			searchText: '',			
+			showPerson: false
+		},
+		created: function() {
+			var url = window.location.search;
+			var arr = [];
+			for(var i = 0; i <= 1; i++) {
+				arr = url.split("=");
+			}
+			if(arr[1] != null) {
+				this.userName = arr[1];
+			}
+			console.log(arr);
+			console.log(this.userName)
+			if(this.userName != 'user' && this.userName != '') {
+				var that = this;
+				$.ajax({
+					url: "../GetInfo",
+					type: "POST",
+					data: {
+						userName: this.userName
+					},
+					dataType: "json",
+					success: function(data) {
+						console.log(data);
+						that.userName=data.userName;
+						that.userInfo=data.info;
+						that.userId=data.schoolId;
+					},
+					error: function(XMLHttpRequest, textStatus, errorThrown) {
+						console.log("XMLHttpRequest" + XMLHttpRequest);
+						console.log("XMLHttpRequest.readyState" + XMLHttpRequest.readyState);
+						console.log("XMLHttpRequest.status" + XMLHttpRequest.status);
+						console.log("textStatus" + textStatus);
+						console.log("errorThrown" + errorThrown);
+						alert("出错，请检查网络设置或联系后台");
+					}
+				})
+			}
+		},
+		methods: {
+			search: function() {
+				var that=this;			
+				console.log(this.searchText);
+				$.ajax({
+					url: "../Search",
+					type: "POST",
+					data: {
+						searchText: this.searchText
+					},
+					success: function(data) {
+						location.href = "allquestion.html?userName=" + that.userName;
+					},
+					error: function(XMLHttpRequest, textStatus, errorThrown) {
+						console.log("XMLHttpRequest" + XMLHttpRequest);
+						console.log("XMLHttpRequest.readyState" + XMLHttpRequest.readyState);
+						console.log("XMLHttpRequest.status" + XMLHttpRequest.status);
+						console.log("textStatus" + textStatus);
+						console.log("errorThrown" + errorThrown);
+						alert("出错，请检查网络设置或联系后台");
+					}
+				})
+			},
+			personShow: function() {
+				this.showPerson = true;
+			},
+			personBack: function() {
+				this.showPerson = false;
+			},
+			toIndexPage: function() {
+				location.href = "../index.html?userName=" + this.userName;
+			},
+			toAllQuestion: function() {
+				location.href = "allquestion.html?userName=" + this.userName;
+			},
+			toAllArticle: function() {
+				location.href = "allarticle.html?userName=" + this.userName;
+			},
+			toLogOut: function() {
+				location.href = "../index.html?userName=" + 'user';
+			},
+			toPersonArea: function(){
+				location.href = "personarea.html?userName=" + this.userName;
+			},
+			toChangeUserInfo: function(){
+				this.changeInfo=true;
+				this.newInfo='';
+			},
+			changeUserInfo: function(){
+				this.userInfo=this.newInfo;
+				this.changeInfo=false;
+			},
+			cancelChangeUserInfo: function(){
+				this.changeInfo=false;
+			},
+			toChangeUser: function(){
+				this.changeAll=true;
+				this.newInfo='';
+				this.newName='';
+				this.newHeadUrl='';
+				this.newBackgroundUrl='';
+			},
+			changeUser: function(){
+				if(this.newName.length>0){
+					this.userName=this.newName;
+				}
+				if(this.newInfo.length>0){
+					this.userInfo=this.newInfo;
+				}
+				if(this.newHeadUrl.length>0){
+					this.headUrl=this.newHeadUrl;
+				}
+				if(this.newBackgroundUrl.length>0){
+					this.backgroundUrl=this.newBackgroundUrl;
+				}
+				this.changeAll=false;
+			},
+			cancelChangeUser: function(){
+				this.changeAll=false;
+			},
+			headChange: function(event){
+				let files = event.target.files[0];
+				this.newHeadUrl = window.URL.createObjectURL(files);
+			},
+			backChange: function(event){
+				let files = event.target.files[0];
+				this.newBackgroundUrl = window.URL.createObjectURL(files);
+			}
+		}
+	})
+</script>
+<style>
+	body {
+		padding: 0;
+		margin: 0;
+		background-color: #e5e2e9;
+	}
+	
+	.bg {
+		width: 100%;
+		height: 100%;
+	}
+	
+	.top-bar {
+		position: absolute;
+		top: 0;
+		width: 1546px;
+		height: 61px;
+		background-color: #4abdac;
+	}
+	.bottom-bar{
+		position: absolute;
+		top: 920px;
+		width: 1546px;
+		height: 100px;
+		background-color: #4abdac;
+	}
+	.logo {
+		position: absolute;
+		top: 10px;
+		left: 150px;
+		width: 100px;
+		height: auto;
+		background-color: #4abdac;
+	}
+	
+	.top-title1 {
+		position: absolute;
+		top: 0px;
+		left: 280px;
+		height: 61px;
+		width: 69px;
+		font-size: 20px;
+		text-decoration: none;
+		background: none;
+		border: none;
+		outline: none;
+		color: white;
+	}
+	
+	.top-title2 {
+		position: absolute;
+		top: 0px;
+		left: 350px;
+		height: 61px;
+		width: 69px;
+		font-size: 20px;
+		text-decoration: none;
+		background: none;
+		border: none;
+		outline: none;
+		color: white;
+	}
+	
+	.top-title3 {
+		position: absolute;
+		top: 0px;
+		left: 420px;
+		height: 61px;
+		width: 69px;
+		font-size: 20px;
+		text-decoration: none;
+		background: none;
+		border: none;
+		outline: none;
+		color: white;
+	}
+	
+	.search-box {
+		position: absolute;
+		top: 15px;
+		left: 1080px;
+		width: 220px;
+		height: 30px;
+	}
+	
+	input::-webkit-input-placeholder {
+		color: #d9d9d9;
+	}
+	
+	.search {
+		position: absolute;
+		top: 0px;
+		height: 100%;
+		width: 200px;
+		padding-left: 10px;
+		outline: none;
+		font-family: "微软雅黑";
+		font-size: 10px;
+		background: none;
+		border: none;
+	}
+	
+	.left-bar1 {
+		position: fixed;
+		left: 0px;
+		top: 300px;
+		height: auto;
+		cursor:pointer;
+	}
+	
+	.person {
+		position: fixed;
+		left: 0;
+		top: 0;
+		width: 302px;
+		height: 100%;
+		z-index: 14;
+		animation: personshow 0.5s;
+		-webkit-animation: personshow 0.5s;
+	}
+	
+	@keyframes personshow {
+		from {
+			left: -329px;
+		}
+		to {
+			left: 0;
+		}
+	}
+	
+	.bg-img {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 300px;
+	}
+	
+	.head-box {
+		position: absolute;
+		top: 240px;
+		left: 0;
+		width: 130px;
+		height: 130px;
+	}
+	
+	.user-id {
+		position: absolute;
+		top: 277px;
+		left: 125px;
+		font-size: 22px;
+		color: white;
+	}
+	
+	.user-info {
+		position: absolute;
+		top: 320px;
+		left: 125px;
+		font-size: 14px;
+		color: #cdcdcd;
+	}
+	
+	.item1 {
+		position: absolute;
+		left: 0;
+		top: 370px;
+		width: 252px;
+		height: 74px;
+		cursor:pointer;
+	}
+	
+	.item2 {
+		position: absolute;
+		left: 0;
+		top: 464px;
+		width: 252px;
+		height: 74px;
+		cursor:pointer;
+	}
+	
+	.item3 {
+		position: absolute;
+		left: 0;
+		top: 558px;
+		width: 252px;
+		height: 74px;
+		cursor:pointer;
+	}
+	
+	.user-logo {
+		position: absolute;
+		left: 30px;
+		top: 17px;
+		height: 40px;
+		width: 40px;
+	}
+	
+	.user-text {
+		position: absolute;
+		left: 90px;
+		top: 5px;
+		font-size: 20px;
+		color: white;
+	}
+	
+	.left-bar2 {
+		position: absolute;
+		right: -27px;
+		top: 300px;
+		cursor:pointer;
+	}
+	
+	.main-area {
+		position: absolute;
+		top: 61px;
+		left: 210px;
+		width: 1064px;
+		height: 900px;
+		background-color: white;
+	}
+	.background-image{
+		position: absolute;
+		width: 100%;
+		height: 385px;
+		overflow: hidden;
+	}
+	.head-image-area{
+		position: absolute;
+		left: 87px;
+		top: 277px;
+		height: 208px;
+		width: 208px;
+		overflow: hidden;
+		background-image: url("../img/个人中心/头像区域.png");
+	}
+	.head-image{
+		position: absolute;
+		top: 23px;
+		left: 22px;
+		height: 162px;
+		width: 162px;
+	}
+	.input-box{
+		background: none;
+		outline: none;
+		border-style: solid;
+		border-width: 1.5px;
+		font-size: 16px;
+		width: 300px;
+		height: 30px;
+		border-color: #62ccc3;
+	}
+	.user-name{
+		position: absolute;
+		margin: 0;
+		top: 339px;
+		left: 280px;
+		font-size: 32px;
+		color: white;
+	}
+	.user-info2{
+		position: absolute;
+		margin: 0;
+		top: 399px;
+		left: 280px;
+		font-size: 16px;
+		color: #868686;
+	}
+	.confirm-info{
+		position: absolute;
+		top: 439px;
+		left: 280px;
+		cursor:pointer;
+	}
+	.cancel-info{
+		position: absolute;
+		top: 439px;
+		left: 330px;
+		cursor:pointer;
+	}
+	.line{
+		position: absolute;
+		top: 510px;
+		left: 110px;
+	}
+	.items{
+		position: absolute;
+		top: 580px;
+		left: 180px;
+		width: 100px;
+		color: #62ccc3;
+		font-size: 20px;
+		height: 200px;
+	}
+	.items-body{
+		position: absolute;
+		top: 580px;
+		left: 280px;
+		width: 100px;
+		color: #565656;
+		font-size: 20px;
+		height: 200px;
+	}
+	.confirm-user{
+		position: absolute;
+		top: 750px;
+		left: 180px;
+	}
+	.cancel-user{
+		position: absolute;
+		top: 750px;
+		left: 280px;
+	}
+	.logo-bottom{
+		position: absolute;
+		left: 450px;
+		top: 30px;
+		width: 126px;
+		height: 48px;
+	}
+	.text-bottom{
+		position: absolute;
+		left: 600px;
+		top: 24px;
+		width: 450px;
+		height: 48px;
+		color: white;
+		font-size: 14px;
+	}
+</style>

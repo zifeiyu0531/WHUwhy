@@ -1,0 +1,663 @@
+<script src="../js/vue.js"></script>
+<script src="../js/jquery-3.3.1.min.js"></script>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>WHUwhy-全部文章</title>
+	</head>
+
+	<body>
+		<div id="allarticle">
+			<div class="top-bar">
+				<img @click="toIndexPage" src="../img/主页面/主界面logo-描边.png" class="logo" />
+				<button @click="toIndexPage" class="top-title1" onmouseenter="enter(this)" onmouseleave="leave(this)">首页</button>
+				<button @click="toAllQuestion" class="top-title2" onmouseenter="enter(this)" onmouseleave="leave(this)">问题</button>
+				<button @click="toAllArticle" class="top-title3" onmouseenter="enter(this)" onmouseleave="leave(this)">文章</button>
+				<div class="search-box">
+					<img src="../img/首页/搜索框.png" class="bg" @click="search" />
+					<input type="text" class="search" v-model="searchText" placeholder="搜索问题" />
+				</div>
+			</div>
+			<img src="../img/主页面/个人信息栏/个人信息栏-展开按钮（改）.png" class="left-bar1" @click="personShow" v-show="!showPerson" />
+			<div class="person" v-show="showPerson">
+				<img class="bg" src="../img/主页面/个人信息栏/个人信息栏-背景框.png" />
+				<img class="bg-img" src="../img/主页面/个人信息栏/个人信息栏-默认背景图.png" />
+				<div class="head-box">
+					<img class="bg" src="../img/主页面/个人信息栏/个人信息栏-头像框.png" />
+				</div>
+				<p class="user-id">{{userName}}</p>
+				<p class="user-info">{{userInfo}}</p>
+				<div class="item1" @click="toPersonArea">
+					<img class="bg" src="../img/主页面/个人信息栏/个人信息栏-条框.png" />
+					<img class="user-logo" src="../img/主页面/个人信息栏/个人中心.png" />
+					<p class="user-text">个人中心</p>
+				</div>
+				<div class="item2">
+					<img class="bg" src="../img/主页面/个人信息栏/个人信息栏-条框.png" />
+					<img class="user-logo" src="../img/主页面/个人信息栏/我的收藏.png" />
+					<p class="user-text">我的收藏</p>
+				</div>
+				<div class="item3" @click="toLogOut">
+					<img class="bg" src="../img/主页面/个人信息栏/个人信息栏-条框.png" />
+					<img class="user-logo" src="../img/主页面/个人信息栏/注销.png" />
+					<p class="user-text">注销</p>
+				</div>
+				<img class="left-bar2" src="../img/主页面/个人信息栏/收起.png" @click="personBack" />
+			</div>
+			<div class="main-area">
+				<img src="../img/全部文章/全部文章.png" class="article-line" />
+				<div class="top-items">
+					<img class="sort-icon" src="../img/全部问题/排序.png" />
+					<div class="sort-items">
+						<img class="sort-item" src="../img/全部问题/最新发布.png" />
+						<img class="sort-item" src="../img/全部问题/最多人看.png" />
+						<img class="sort-item" src="../img/全部问题/默认排序.png" />
+					</div>
+				</div>
+				<div class="articles">
+					<div v-for="(article, index) in articleList" class="article-item" @click="toArticleDetail(article)">
+						<div v-if="index%2==0" class="bg" style="background-color: #f9f9f9;"></div>
+						<div v-if="index%2!=0" class="bg" style="background-color: #f3f3f3;"></div>
+						<div class="screen-item-little" style="background-image: url(../img/全部文章/文章装饰线.png);"></div>
+						<p class="article-title1">{{article.title}}</p>
+						<p class="article-name">{{article.name}}</p>
+						<p class="article-body">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{article.body[0]}}...</p>
+					</div>
+					<div class="page-bar">
+						<a href="#" v-show="currentPage!=1" @click="lastPage" class="page-item1">上一页</a>
+						<div class="page-index">{{currentPage}}/{{totalPage}}</div>
+						<a href="#" v-show="currentPage!=totalPage" @click="nextPage" class="page-item2">下一页</a>
+					</div>
+					<a href="#" class="page-item3"></a>
+				</div>
+			</div>
+			<div :class="{shadow: showShadow}"></div>
+			<div class="alert-cloud" v-show="showAlert">
+				<img src="../img/主页面/登录提示/登录提示云.png" class="bg"/>
+				<img src="../img/主页面/登录提示/这就登录.png" class="to-login" @click="toLogOut"/>
+				<img src="../img/主页面/登录提示/我先注册.png" class="to-singup" @click="toLogOut"/>
+				<img src="../img/主页面/登录提示/不登录了，随便逛逛__.png" class="no-login" @click="noLogin" />
+			</div>
+			<div class="bottom-bar">
+				<img src="../img/主页面/主界面logo-描边.png" class="logo-bottom"/>
+				<p class="text-bottom">武汉大学计算机学院“零杯”网页设计大赛参赛作品</p>
+			</div>
+		</div>
+	</body>
+
+</html>
+<script>
+	function enter(x) {
+		x.style.backgroundImage = "url(../img/主页面/导航栏悬空响应.png)";
+	}
+
+	function leave(x) {
+		x.style.background = "none";
+	}
+	var app = new Vue({
+		el: '#allarticle',
+		data: {
+			userName: 'user',
+			userInfo: '个人介绍',
+			searchText: '',
+			showAlert: false,
+			showShadow: false,
+			showPerson: false,
+			currentPage: 1,
+			totalPage: 10,
+			articleList: []
+		},
+		created: function() {
+			var url = window.location.search;
+			var arr = [];
+			for(var i = 0; i <= 1; i++) {
+				arr = url.split("=");
+			}
+			if(arr[1] != null) {
+				this.userName = arr[1];
+			}
+			console.log(arr);
+			console.log(this.userName)
+			var that = this;
+			if(this.userName != 'user' && this.userName != '') {
+				$.ajax({
+					url: "../GetInfo",
+					type: "POST",
+					data: {
+						userName: this.userName
+					},
+					dataType: "json",
+					success: function(data) {
+						console.log(data);
+						that.userName=data.userName;
+						that.userInfo=data.info;
+					},
+					error: function(XMLHttpRequest, textStatus, errorThrown) {
+						console.log("XMLHttpRequest" + XMLHttpRequest);
+						console.log("XMLHttpRequest.readyState" + XMLHttpRequest.readyState);
+						console.log("XMLHttpRequest.status" + XMLHttpRequest.status);
+						console.log("textStatus" + textStatus);
+						console.log("errorThrown" + errorThrown);
+						alert("出错，请检查网络设置或联系后台");
+					}
+				})
+			}
+			$.ajax({
+					url: "../GetArticle",
+					type: "POST",
+					data: {},
+					dataType: "json",
+					success: function(data) {
+						that.articleList=data;
+						console.log(that.articleList);
+					},
+					error: function(XMLHttpRequest, textStatus, errorThrown) {
+						console.log("XMLHttpRequest" + XMLHttpRequest);
+						console.log("XMLHttpRequest.readyState" + XMLHttpRequest.readyState);
+						console.log("XMLHttpRequest.status" + XMLHttpRequest.status);
+						console.log("textStatus" + textStatus);
+						console.log("errorThrown" + errorThrown);
+						alert("出错，请检查网络设置或联系后台");
+					}
+				})
+		},
+		methods: {
+			search: function() {
+				var that=this;
+				console.log(this.searchText);
+				$.ajax({
+					url: "../Search",
+					type: "POST",
+					data: {
+						searchText: this.searchText
+					},
+					success: function(data) {
+						location.href = "allquestion.html?userName=" + that.userName;
+					},
+					error: function(XMLHttpRequest, textStatus, errorThrown) {
+						console.log("XMLHttpRequest" + XMLHttpRequest);
+						console.log("XMLHttpRequest.readyState" + XMLHttpRequest.readyState);
+						console.log("XMLHttpRequest.status" + XMLHttpRequest.status);
+						console.log("textStatus" + textStatus);
+						console.log("errorThrown" + errorThrown);
+						alert("出错，请检查网络设置或联系后台");
+					}
+				})
+			},
+			personShow: function() {
+				this.showPerson = true;
+			},
+			personBack: function() {
+				this.showPerson = false;
+			},
+			toIndexPage: function() {
+				location.href = "../index.html?userName=" + this.userName;
+			},
+			toAllQuestion: function() {
+				location.href = "allquestion.html?userName=" + this.userName;
+			},
+			toAllArticle: function() {
+				location.href = "allarticle.html?userName=" + this.userName;
+			},
+			toLogOut: function() {
+				location.href = "../index.html?userName=" + 'user';
+			},
+			toArticleDetail: function(article){
+				location.href = "articledetail.html?userName=" + this.userName + "&id=" + article.id;
+			},
+			noLogin: function() {
+				this.showAlert=false;
+				this.showShadow=false;
+				this.showPerson = false;
+			},
+			toPersonArea: function(){
+				if(this.userName=='user'){
+					this.showAlert=true;
+					this.showShadow=true;
+				}else{
+					location.href = "personarea.html?userName=" + this.userName;
+				}
+			},
+			lastPage:function(){
+				this.currentPage-=1;
+			},
+			nextPage:function(){
+				this.currentPage+=1;
+			}
+		}
+	})
+</script>
+<style>
+	body {
+		padding: 0;
+		margin: 0;
+		background-color: #e5e2e9;
+	}
+	
+	.bg {
+		width: 100%;
+		height: 100%;
+	}
+	
+	.top-bar {
+		position: absolute;
+		top: 0;
+		width: 1546px;
+		height: 61px;
+		background-color: #4abdac;
+	}
+	.bottom-bar{
+		position: absolute;
+		top: 2620px;
+		width: 1546px;
+		height: 100px;
+		background-color: #4abdac;
+	}
+	.logo {
+		position: absolute;
+		top: 10px;
+		left: 150px;
+		width: 100px;
+		height: auto;
+		background-color: #4abdac;
+	}
+	
+	.top-title1 {
+		position: absolute;
+		top: 0px;
+		left: 280px;
+		height: 61px;
+		width: 69px;
+		font-size: 20px;
+		text-decoration: none;
+		background: none;
+		border: none;
+		outline: none;
+		color: white;
+	}
+	
+	.top-title2 {
+		position: absolute;
+		top: 0px;
+		left: 350px;
+		height: 61px;
+		width: 69px;
+		font-size: 20px;
+		text-decoration: none;
+		background: none;
+		border: none;
+		outline: none;
+		color: white;
+	}
+	
+	.top-title3 {
+		position: absolute;
+		top: 0px;
+		left: 420px;
+		height: 61px;
+		width: 69px;
+		font-size: 20px;
+		text-decoration: none;
+		background: none;
+		border: none;
+		outline: none;
+		color: white;
+	}
+	
+	.search-box {
+		position: absolute;
+		top: 15px;
+		left: 1080px;
+		width: 220px;
+		height: 30px;
+	}
+	
+	input::-webkit-input-placeholder {
+		color: #d9d9d9;
+	}
+	
+	.search {
+		position: absolute;
+		top: 0px;
+		height: 100%;
+		width: 200px;
+		padding-left: 10px;
+		outline: none;
+		font-family: "微软雅黑";
+		font-size: 10px;
+		background: none;
+		border: none;
+	}
+	
+	.left-bar1 {
+		position: fixed;
+		left: 0px;
+		top: 300px;
+		height: auto;
+		cursor:pointer;
+	}
+	
+	.person {
+		position: fixed;
+		left: 0;
+		top: 0;
+		width: 302px;
+		height: 100%;
+		z-index: 14;
+		animation: personshow 0.5s;
+		-webkit-animation: personshow 0.5s;
+	}
+	
+	@keyframes personshow {
+		from {
+			left: -329px;
+		}
+		to {
+			left: 0;
+		}
+	}
+	
+	.bg-img {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 300px;
+	}
+	
+	.head-box {
+		position: absolute;
+		top: 240px;
+		left: 0;
+		width: 130px;
+		height: 130px;
+	}
+	
+	.user-id {
+		position: absolute;
+		top: 277px;
+		left: 125px;
+		font-size: 22px;
+		color: white;
+	}
+	
+	.user-info {
+		position: absolute;
+		top: 320px;
+		left: 125px;
+		font-size: 14px;
+		color: #cdcdcd;
+	}
+	
+	.item1 {
+		position: absolute;
+		left: 0;
+		top: 370px;
+		width: 252px;
+		height: 74px;
+		cursor:pointer;
+	}
+	
+	.item2 {
+		position: absolute;
+		left: 0;
+		top: 464px;
+		width: 252px;
+		height: 74px;
+		cursor:pointer;
+	}
+	
+	.item3 {
+		position: absolute;
+		left: 0;
+		top: 558px;
+		width: 252px;
+		height: 74px;
+		cursor:pointer;
+	}
+	
+	.user-logo {
+		position: absolute;
+		left: 30px;
+		top: 17px;
+		height: 40px;
+		width: 40px;
+	}
+	
+	.user-text {
+		position: absolute;
+		left: 90px;
+		top: 5px;
+		font-size: 20px;
+		color: white;
+	}
+	
+	.left-bar2 {
+		position: absolute;
+		right: -27px;
+		top: 300px;
+		cursor:pointer;
+	}
+	
+	.main-area {
+		position: absolute;
+		top: 61px;
+		left: 150px;
+		width: 1150px;
+		height: 2600px;
+		background-color: white;
+	}
+	
+	.article-line {
+		position: absolute;
+		top: 50px;
+		left: 90px;
+	}
+	
+	.top-items {
+		position: absolute;
+		top: 94px;
+		left: 115px;
+		width: 930px;
+		height: 60px;
+		background-color: #f3f3f3;
+	}
+	
+	.sort-icon {
+		position: absolute;
+		bottom: 20px;
+		left: 10px;
+	}
+	.screen-item-little{
+		position: absolute;
+		top: 25px;
+		left: 70px;
+		height: 37px;
+		width: 837px;
+		color: white;
+		font-weight: 700;
+		padding-bottom: 2px;
+		padding-left: 1px;
+		background-repeat: no-repeat;
+		font-size: 11px;
+	}
+	.sort-items {
+		position: absolute;
+		bottom: 20px;
+		left: 80px;
+		height: 22px;
+		width: 400px;
+	}
+	
+	.sort-item {
+		height: 22px;
+		width: 92px;
+		margin-right: 20px;
+		display: inline;
+	}
+	
+	.articles {
+		position: absolute;
+		top: 154px;
+		left: 115px;
+		width: 930px;
+		height: 2200px;
+		background-color: gray;
+	}
+	
+	.article-item {
+		position: relative;
+		width: 100%;
+		height: 220px;
+		cursor: pointer;
+	}
+	.article-title1 {
+		position: absolute;
+		top: 0px;
+		left: 120px;
+		font-weight: 900;
+		font-size: 24px;
+		color: #585858;
+	}
+	.article-name{
+		position: absolute;
+		top: 20px;
+		right: 80px;
+		font-size: 16px;
+		color: #585858;
+	}
+	.article-head{
+		position: absolute;
+		right: 150px;
+		top: 38px;
+		height: 20px;
+		width: 20px;
+		border-radius: 50%;
+		background-color: #545453;
+		margin: 0;
+	}
+	.article-body {
+		position: absolute;
+		top: 60px;
+		left: 8%;
+		right: 8%;
+		font-size: 16px;
+		color: #848484;
+	}
+	.page-bar{
+		position: absolute;
+		left: 670px;
+		top: 2210px;
+		width: 300px;
+		height: 50px;
+		display: flex;
+		flex-direction: row;
+	}
+	.page-item1{
+		position: absolute;
+		left: 0px;
+		top: 0px;
+		font-size: 20px;
+		font-weight: 700;
+		text-decoration: none;
+		color: #fe8721;
+	}
+	.page-index{
+		position: absolute;
+		left: 110px;
+		top: 0px;
+		font-size: 20px;
+		font-weight: 700;
+		color: #fe8721;
+	}
+	.page-item2{
+		position: absolute;
+		left: 200px;
+		top: 0px;
+		font-size: 20px;
+		font-weight: 700;
+		text-decoration: none;
+		color: #fe8721;
+	}
+	.page-item3{
+		position: absolute;
+		left: 790px;
+		top: 2280px;
+		width: 148px;
+		height: 52px;
+		background-image: url("../img/全部问题/返回顶部.png");
+	}
+	.logo-bottom{
+		position: absolute;
+		left: 450px;
+		top: 30px;
+		width: 126px;
+		height: 48px;
+	}
+	.text-bottom{
+		position: absolute;
+		left: 600px;
+		top: 24px;
+		width: 450px;
+		height: 48px;
+		color: white;
+		font-size: 14px;
+	}
+	.alert-cloud{
+		position: fixed;
+		top: 200px;
+		left: 500px;
+		height: 300px;
+		width: 492px;
+		animation: bigCloudShow 0.5s;
+		-webkit-animation: bigCloudShow 0.5s;
+	}
+	@keyframes bigCloudShow {
+		from {
+			transform: scale(0);
+			-webkit-transform: scale(0);
+		}
+		to {
+			transform: scale(1);
+			-webkit-transform: scale(1);
+		}
+	}
+	.shadow {
+		position: fixed;
+		height: 100%;
+		width: 100%;
+		background-image: url("../img/首页/背景-黑色阴影.png");
+		animation: backShadow 0.5s;
+		-webkit-animation: backShadow 0.5s;
+	}
+	
+	@keyframes backShadow {
+		from {
+			opacity: 0;
+			-webkit-opacity: 0;
+		}
+		to {
+			opacity: 1;
+			-webkit-opacity: 1;
+		}
+	}
+	.to-login{
+		position: absolute;
+		left: 135px;
+		top: 200px;
+		cursor:pointer;
+	}
+	.to-singup{
+		position: absolute;
+		right: 135px;
+		top: 200px;
+		cursor:pointer;
+	}
+	.no-login{
+		position: absolute;
+		left: 185px;
+		top: 250px;
+		cursor:pointer;
+	}
+</style>
